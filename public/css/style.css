@@ -1,0 +1,150 @@
+/* ==========================================================================
+   GDGOC COMMUNITY HUB - PRODUCTION GRADE STYLESHEET
+   ========================================================================== */
+
+/* 1. Global Polish & Smooth Transitions */
+:root {
+  --gdg-blue: #1a73e8;
+  --gdg-red: #ea4335;
+  --gdg-yellow: #fbbc04;
+  --gdg-green: #34a853;
+  --gdg-dark: #0f172a;
+}
+
+html {
+  scroll-behavior: smooth;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* 2. Glassmorphism & Card Elevate Effects */
+.tab-content > div,
+.problem-card,
+.sticky {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* 3. Dynamic Bottom Navigation Bar Polish (LinkedIn Style) */
+nav.fixed {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background-color: rgba(255, 255, 255, 0.92);
+}
+
+.nav-btn {
+  position: relative;
+  transition: color 0.2s ease, transform 0.15s ease;
+}
+
+.nav-btn:active {
+  transform: scale(0.92);
+}
+
+.nav-btn.text-blue-600::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  width: 24px;
+  height: 3px;
+  background-color: var(--gdg-blue);
+  border-radius: 0 0 4px 4px;
+  animation: navPulse 0.3s ease-out forwards;
+}
+
+@keyframes navPulse {
+  from {
+    width: 0px;
+    opacity: 0;
+  }
+  to {
+    width: 24px;
+    opacity: 1;
+  }
+}
+
+/* 4. Chat Bubble Styling */
+#chatBox div {
+  padding: 8px 12px;
+  border-radius: 12px;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  word-break: break-word;
+}
+
+#chatBox div strong {
+  color: var(--gdg-blue);
+}
+
+/* 5. Custom Code Block Formatting for Problems */
+pre code {
+  font-family: 'Fira Code', 'Courier New', Courier, monospace;
+  line-height: 1.5;
+  font-size: 0.85rem;
+}
+
+/* 6. Upvote Button Pulse Effect */
+.upvote-btn {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.upvote-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(26, 115, 232, 0.15);
+}
+
+.upvote-btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+/* 7. Leaderboard Badges & Rank Highlights */
+#leaderboardList div:nth-child(1) {
+  background: linear-gradient(90deg, rgba(254, 240, 138, 0.3) 0%, rgba(255, 255, 255, 0) 100%);
+  border-left: 3px solid var(--gdg-yellow);
+  border-radius: 4px;
+}
+
+#leaderboardList div:nth-child(2) {
+  background: linear-gradient(90deg, rgba(226, 232, 240, 0.5) 0%, rgba(255, 255, 255, 0) 100%);
+  border-left: 3px solid #94a3b8;
+  border-radius: 4px;
+}
+
+#leaderboardList div:nth-child(3) {
+  background: linear-gradient(90deg, rgba(254, 215, 170, 0.4) 0%, rgba(255, 255, 255, 0) 100%);
+  border-left: 3px solid #b45309;
+  border-radius: 4px;
+}
+
+/* 8. Tab Transition Animations */
+.tab-content:not(.hidden) {
+  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

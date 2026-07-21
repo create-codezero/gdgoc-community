@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GDGOC Community Hub</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col pb-20 md:pb-0">
+
+    <!-- Top Navigation Header -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-40 px-4 py-3 shadow-sm">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <span class="text-2xl">🚀</span>
+                <h1 class="text-xl font-bold tracking-tight text-gray-800">GDGOC Hub</h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span id="userName" class="text-sm font-semibold text-gray-600">Loading User...</span>
+                <button id="logoutBtn" class="text-xs bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 px-3 py-1.5 rounded-lg font-medium transition">
+                    Logout
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-6xl mx-auto w-full flex-1 p-4 md:p-6">
+
+        <!-- ========================================================== -->
+        <!-- SECTION 1: EVENTS (HOME) SECTION -->
+        <!-- ========================================================== -->
+        <section id="section-events" class="tab-content space-y-6">
+            
+            <!-- Banner / Welcome -->
+            <div class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-6 rounded-2xl shadow-sm">
+                <h2 class="text-2xl font-bold mb-1">Welcome to GDGOC Hub 👋</h2>
+                <p class="text-blue-100 text-sm">Connect, learn, build solutions, and level up with fellow developers.</p>
+            </div>
+
+            <!-- Featured Events Container -->
+            <div class="max-w-3xl mx-auto space-y-6">
+                <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                    <h3 class="text-lg font-bold text-amber-600 border-b pb-2 mb-4 flex items-center gap-2">
+                        <span>📅</span> Featured Event & RSVP
+                    </h3>
+                    <div class="border border-amber-200 bg-amber-50/50 p-5 rounded-xl space-y-3">
+                        <span class="text-xs font-bold uppercase tracking-wider bg-amber-200 text-amber-900 px-2.5 py-1 rounded-md">
+                            Hackathon
+                        </span>
+                        <h4 class="text-xl font-bold text-gray-800">Google Solution Challenge Sprint</h4>
+                        <p class="text-xs text-gray-600">Date: Next Saturday | Venue: Innovation Lab 3</p>
+                        
+                        <!-- Interactive RSVP Button -->
+                        <button id="rsvpBtn" class="w-full mt-2 bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2.5 px-4 text-sm rounded-lg transition shadow">
+                            RSVP Now
+                        </button>
+                        
+                        <!-- Digital Ticket Pass Area -->
+                        <div id="ticketArea" class="hidden mt-4 p-4 bg-white border border-dashed border-gray-300 rounded-xl text-center space-y-2">
+                            <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">Your Event Pass</p>
+                            <div class="flex justify-center">
+                                <img id="qrCodeImg" src="" alt="Scan Ticket Pass" class="w-32 h-32 border p-1 rounded bg-white">
+                            </div>
+                            <p id="ticketId" class="text-[11px] text-gray-400 font-mono"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================== -->
+        <!-- SECTION 2: CHAT SECTION (NEW & COMBINED) -->
+        <!-- ========================================================== -->
+        <section id="section-chat" class="tab-content hidden max-w-3xl mx-auto space-y-4">
+            
+            <!-- Chat Switcher Toggle -->
+            <div class="bg-white p-1.5 rounded-xl border border-gray-200 shadow-sm flex gap-2">
+                <button id="tab-ai-chat-btn" class="flex-1 py-2 px-4 text-xs font-bold rounded-lg bg-purple-100 text-purple-700 transition flex items-center justify-center gap-2">
+                    <span>🤖</span> Gemini AI Study Buddy
+                </button>
+                <button id="tab-group-chat-btn" class="flex-1 py-2 px-4 text-xs font-bold rounded-lg bg-gray-100 text-gray-600 transition flex items-center justify-center gap-2">
+                    <span>💬</span> Live Community Chat
+                </button>
+            </div>
+
+            <!-- Gemini AI Sub-View -->
+            <div id="ai-chat-container" class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
+                <h3 class="text-lg font-bold text-purple-600 border-b pb-2 flex items-center gap-2">
+                    <span>🤖</span> Gemini AI Study Buddy
+                </h3>
+                <p class="text-xs text-gray-500">Ask coding questions, debugging help, or core concept explanations.</p>
+                <div class="flex gap-2">
+                    <input id="aiInput" type="text" placeholder="Ask Gemini: Explain concurrency in Go..." class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    <button id="askAiBtn" class="bg-purple-600 hover:bg-purple-700 text-white font-medium px-4 py-2 text-sm rounded-lg transition">Ask AI</button>
+                </div>
+                <div id="aiResponse" class="p-4 bg-purple-50 border border-purple-100 rounded-lg text-sm text-purple-950 min-h-24 hidden"></div>
+            </div>
+
+            <!-- Live Community Group Chat Sub-View -->
+            <div id="group-chat-container" class="hidden bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col h-[500px]">
+                <h3 class="text-lg font-bold text-blue-600 border-b pb-2 mb-4 flex items-center gap-2">
+                    <span>💬</span> Live Community Chat
+                </h3>
+                <div id="chatBox" class="flex-1 overflow-y-auto bg-gray-50 p-3 rounded-lg mb-3 space-y-2 text-sm text-gray-700 border border-gray-100">
+                    <!-- Realtime Firestore messages render here -->
+                </div>
+                <div class="flex gap-2">
+                    <input id="chatInput" type="text" placeholder="Say something to the group..." class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button id="sendChatBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 text-sm rounded-lg transition">Send</button>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ========================================================== -->
+        <!-- SECTION 3: DISCUSSION FORUM SECTION -->
+        <!-- ========================================================== -->
+        <section id="section-discussion" class="tab-content hidden space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- Main Feed & Post Form -->
+                <div class="lg:col-span-2 space-y-6">
+                    
+                    <!-- Search & Filter Controls -->
+                    <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col sm:flex-row gap-3">
+                        <input type="text" id="searchProblemInput" placeholder="🔍 Search problems by keyword or code..." class="flex-1 border border-gray-300 p-2 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <select id="filterCategorySelect" class="border border-gray-300 p-2 text-sm rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="All">All Categories</option>
+                            <option value="Bug">🐛 Bug</option>
+                            <option value="Question">❓ Question</option>
+                            <option value="Showcase">🚀 Project Showcase</option>
+                            <option value="General">💬 General</option>
+                        </select>
+                    </div>
+
+                    <!-- Create Problem Form -->
+                    <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                        <h2 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Post a New Problem</h2>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="problemCategorySelect" class="block text-xs font-semibold uppercase text-gray-500 mb-1">Category</label>
+                                <select id="problemCategorySelect" class="w-full border border-gray-300 p-2.5 text-sm rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="Bug">🐛 Bug</option>
+                                    <option value="Question">❓ Question</option>
+                                    <option value="Showcase">🚀 Project Showcase</option>
+                                    <option value="General" selected>💬 General</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="problemTitleInput" class="block text-xs font-semibold uppercase text-gray-500 mb-1">Title</label>
+                                <input type="text" id="problemTitleInput" placeholder="e.g., C++ pointer segmentation fault on array iteration..." class="w-full border border-gray-300 p-2.5 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label for="problemCodeInput" class="block text-xs font-semibold uppercase text-gray-500 mb-1">Code / Description</label>
+                                <textarea id="problemCodeInput" rows="5" placeholder="Paste your code snippet or explain your issue..." class="w-full border border-gray-300 p-3 text-sm font-mono rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                            </div>
+                            <button id="createProblemBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg transition shadow text-sm">
+                                Post Problem
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Problem Feed -->
+                    <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">Recent Community Discussions</h3>
+                        <div id="problemsList" class="space-y-4">
+                            <p class="text-gray-400 text-sm text-center italic py-4">Loading problems...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sidebar Leaderboard -->
+                <div class="lg:col-span-1">
+                    <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm sticky top-20">
+                        <div class="flex items-center justify-center space-x-2 mb-4 border-b pb-3">
+                            <span class="text-2xl">🏆</span>
+                            <h2 class="text-lg font-bold text-gray-800">Community Leaderboard</h2>
+                        </div>
+                        <p class="text-xs text-gray-500 text-center mb-4">Solve problems and earn points to rise up the ranks!</p>
+                        
+                        <div id="leaderboardList" class="space-y-1 mb-4">
+                            <p class="text-gray-400 text-sm text-center italic">Loading rankings...</p>
+                        </div>
+
+                        <!-- Points Legend -->
+                        <div class="pt-4 border-t border-gray-100">
+                            <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Rewards Guide</h4>
+                            <ul class="text-xs text-gray-600 space-y-1">
+                                <li>💬 Text Solution: <span class="font-bold text-blue-600">+1 pt</span></li>
+                                <li>🎥 YouTube Video Solution: <span class="font-bold text-blue-600">+5 pts</span></li>
+                                <li>👍 Helpful Upvote: <span class="font-bold text-blue-600">+2 pts</span></li>
+                                <li>✅ Solution Verified: <span class="font-bold text-blue-600">+10 pts</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ========================================================== -->
+        <!-- SECTION 4: MENTORSHIP SECTION -->
+        <!-- ========================================================== -->
+        <section id="section-mentorship" class="tab-content hidden max-w-3xl mx-auto space-y-6">
+            <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                <h2 class="text-xl font-bold text-gray-800 mb-1">1:1 Technical Mentorship Hub</h2>
+                <p class="text-xs text-gray-500 mb-6">Book 15-minute 1-on-1 sprint calls with expert leads. Slots reserve in real time.</p>
+
+                <div class="space-y-4">
+                    <div class="p-4 bg-gray-50 border border-gray-200 rounded-xl space-y-2">
+                        <div class="flex items-center gap-2">
+                            <span class="text-lg">☁️</span>
+                            <h3 class="text-sm font-bold text-gray-800">Alex Rivera (Cloud Infrastructure Lead)</h3>
+                        </div>
+                        <div class="flex flex-wrap gap-2 pt-1">
+                            <button data-mentor="Alex Rivera" data-slot="14:00 - 14:15" class="book-mentor-btn text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-1.5 px-3 rounded-lg transition">14:00 - 14:15</button>
+                            <button data-mentor="Alex Rivera" data-slot="14:15 - 14:30" class="book-mentor-btn text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-1.5 px-3 rounded-lg transition">14:15 - 14:30</button>
+                        </div>
+                    </div>
+
+                    <div class="p-4 bg-gray-50 border border-gray-200 rounded-xl space-y-2">
+                        <div class="flex items-center gap-2">
+                            <span class="text-lg">🧠</span>
+                            <h3 class="text-sm font-bold text-gray-800">Dr. Priya Nair (AI/ML Specialist)</h3>
+                        </div>
+                        <div class="flex flex-wrap gap-2 pt-1">
+                            <button data-mentor="Dr. Priya Nair" data-slot="15:00 - 15:15" class="book-mentor-btn text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-1.5 px-3 rounded-lg transition">15:00 - 15:15</button>
+                            <button data-mentor="Dr. Priya Nair" data-slot="15:15 - 15:30" class="book-mentor-btn text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-1.5 px-3 rounded-lg transition">15:15 - 15:30</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================== -->
+        <!-- SECTION 5: PROFILE SECTION -->
+        <!-- ========================================================== -->
+        <section id="section-profile" class="tab-content hidden max-w-xl mx-auto space-y-6">
+            <div class="bg-slate-900 text-white p-6 rounded-2xl shadow-md border border-slate-800">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-4">
+                    <h2 class="text-xl font-bold">GDGOC Developer Profile</h2>
+                    <span class="bg-blue-900/60 border border-blue-500/30 text-blue-300 text-xs font-semibold px-3 py-1 rounded-full">
+                        Points: <span id="profilePoints">0</span>
+                    </span>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-gray-400 mb-1">Full Name</label>
+                        <input type="text" id="profileName" class="w-full bg-slate-800 text-white border border-slate-700 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-gray-400 mb-1">Google Email Address (Immutable)</label>
+                        <input type="email" id="profileEmail" disabled class="w-full bg-slate-800/50 text-gray-500 border border-slate-800 rounded-lg p-2.5 text-sm cursor-not-allowed">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-gray-400 mb-1">Core Tech Track</label>
+                        <select id="profileTrack" class="w-full bg-slate-800 text-white border border-slate-700 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Select Domain Option...</option>
+                            <option value="Web Development">Web Development (Frontend/Backend)</option>
+                            <option value="Mobile Development">Mobile Development (Flutter/Android)</option>
+                            <option value="AI / ML">AI / Machine Learning (Gemini, TensorFlow)</option>
+                            <option value="Cloud Computing">Cloud Computing (GCP)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-gray-400 mb-1">GitHub Profile URL</label>
+                        <input type="url" id="profileGithub" placeholder="https://github.com/username" class="w-full bg-slate-800 text-white border border-slate-700 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-gray-400 mb-1">Core Technical Skills</label>
+                        <input type="text" id="profileSkills" placeholder="JavaScript, Python, Go, Docker" class="w-full bg-slate-800 text-white border border-slate-700 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <button id="saveProfileBtn" class="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-lg transition text-sm shadow">
+                        Update GDGOC Profile
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ========================================================== -->
+    <!-- LINKEDIN-STYLE BOTTOM NAVIGATION BAR -->
+    <!-- ========================================================== -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 px-2 py-1 shadow-lg">
+        <div class="max-w-md mx-auto flex justify-around items-center">
+            
+            <!-- Tab 1: Events (Home) -->
+            <button data-tab="events" class="nav-btn flex flex-col items-center py-1 px-3 text-blue-600 transition-colors">
+                <span class="text-xl">🏠</span>
+                <span class="text-[11px] font-medium mt-0.5">Events</span>
+            </button>
+
+            <!-- Tab 2: Chat (Combined AI & Group Chat) -->
+            <button data-tab="chat" class="nav-btn flex flex-col items-center py-1 px-3 text-gray-500 hover:text-blue-600 transition-colors">
+                <span class="text-xl">💬</span>
+                <span class="text-[11px] font-medium mt-0.5">Chat</span>
+            </button>
+
+            <!-- Tab 3: Discussion -->
+            <button data-tab="discussion" class="nav-btn flex flex-col items-center py-1 px-3 text-gray-500 hover:text-blue-600 transition-colors">
+                <span class="text-xl">📌</span>
+                <span class="text-[11px] font-medium mt-0.5">Discussion</span>
+            </button>
+
+            <!-- Tab 4: Mentorship -->
+            <button data-tab="mentorship" class="nav-btn flex flex-col items-center py-1 px-3 text-gray-500 hover:text-blue-600 transition-colors">
+                <span class="text-xl">👥</span>
+                <span class="text-[11px] font-medium mt-0.5">Mentorship</span>
+            </button>
+
+            <!-- Tab 5: Profile -->
+            <button data-tab="profile" class="nav-btn flex flex-col items-center py-1 px-3 text-gray-500 hover:text-blue-600 transition-colors">
+                <span class="text-xl">👤</span>
+                <span class="text-[11px] font-medium mt-0.5">Profile</span>
+            </button>
+
+        </div>
+    </nav>
+
+    <!-- Navigation & Chat Switcher Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Main Bottom Bar Tab Switching
+            const navButtons = document.querySelectorAll('.nav-btn');
+            const sections = document.querySelectorAll('.tab-content');
+
+            navButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const targetTab = btn.getAttribute('data-tab');
+
+                    // 1. Hide all main sections
+                    sections.forEach(sec => sec.classList.add('hidden'));
+
+                    // 2. Show targeted section
+                    const targetSection = document.getElementById(`section-${targetTab}`);
+                    if (targetSection) targetSection.classList.remove('hidden');
+
+                    // 3. Reset active button styling
+                    navButtons.forEach(b => {
+                        b.classList.remove('text-blue-600');
+                        b.classList.add('text-gray-500');
+                    });
+
+                    // 4. Highlight clicked button
+                    btn.classList.remove('text-gray-500');
+                    btn.classList.add('text-blue-600');
+                });
+            });
+
+            // Chat Sub-Tab Toggle Logic (AI vs Group Chat)
+            const tabAiBtn = document.getElementById('tab-ai-chat-btn');
+            const tabGroupBtn = document.getElementById('tab-group-chat-btn');
+            const aiContainer = document.getElementById('ai-chat-container');
+            const groupContainer = document.getElementById('group-chat-container');
+
+            if(tabAiBtn && tabGroupBtn) {
+                tabAiBtn.addEventListener('click', () => {
+                    aiContainer.classList.remove('hidden');
+                    groupContainer.classList.add('hidden');
+
+                    tabAiBtn.className = "flex-1 py-2 px-4 text-xs font-bold rounded-lg bg-purple-100 text-purple-700 transition flex items-center justify-center gap-2";
+                    tabGroupBtn.className = "flex-1 py-2 px-4 text-xs font-bold rounded-lg bg-gray-100 text-gray-600 transition flex items-center justify-center gap-2";
+                });
+
+                tabGroupBtn.addEventListener('click', () => {
+                    groupContainer.classList.remove('hidden');
+                    aiContainer.classList.add('hidden');
+
+                    tabGroupBtn.className = "flex-1 py-2 px-4 text-xs font-bold rounded-lg bg-blue-100 text-blue-700 transition flex items-center justify-center gap-2";
+                    tabAiBtn.className = "flex-1 py-2 px-4 text-xs font-bold rounded-lg bg-gray-100 text-gray-600 transition flex items-center justify-center gap-2";
+                });
+            }
+        });
+    </script>
+
+    <!-- Application Script -->
+    <script type="module" src="/static/js/app.js"></script>
+</body>
+</html>
