@@ -12,6 +12,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/joho/godotenv" // Added the dotenv loader package
+	"io/ioutil"
 )
 
 type Part struct {
@@ -39,10 +40,30 @@ func main() {
 	// Serve static files (CSS, JS) from the "public" directory
 	app.Static("/static", "./public")
 
+	// Add this route right above log.Fatal(app.Listen(":3000"))
+	app.Get("/favicon.ico", func(c *fiber.Ctx) error {
+		return c.SendStatus(204) // No Content response
+	})
+
 	// HTML Route: Landing / Login Page
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendFile("./views/index.html")
 	})
+
+	app.Get("/turn-credentials", func(c *fiber.Ctx) error {
+        // Fetch fresh credentials from your TURN provider
+        resp, err := http.Get("https://YOUR_APP.metered.live/api/v1/turn/credentials?apiKey=YOUR_API_KEY")
+        if err != nil {
+            return c.Status(500).SendString("Error fetching TURN credentials")
+        }
+        defer resp.Body.Close()
+        
+        body, _ := ioutil.ReadAll(resp.Body)
+        var iceServers []interface{}
+        json.Unmarshal(body, &iceServers)
+        
+        return c.JSON(fiber.Map{"iceServers": iceServers})
+    })
 
 	// HTML Route: Dashboard
 	app.Get("/dashboard", func(c *fiber.Ctx) error {
