@@ -16,17 +16,24 @@ let peerConnection = null;
 let isHost = false; // Tracks role explicitly to avoid checking null localDescription
 
 // STUN + TURN (UDP and TCP over port 443 to bypass strict mobile firewalls)
+// Replace this block in groupmeet.js
 let servers = {
     iceServers: [
         { urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] },
         {
-            urls: [
-                'turn:openrelay.metered.ca:80',
-                'turn:openrelay.metered.ca:443',
-                'turn:openrelay.metered.ca:443?transport=tcp'
-            ],
-            username: 'openrelayproject',
-            credential: 'openrelayproject'
+            urls: "turn:YOUR_APP_NAME.metered.live:80",
+            username: "YOUR_UNIQUE_USERNAME",
+            credential: "YOUR_UNIQUE_PASSWORD"
+        },
+        {
+            urls: "turn:YOUR_APP_NAME.metered.live:443",
+            username: "YOUR_UNIQUE_USERNAME",
+            credential: "YOUR_UNIQUE_PASSWORD"
+        },
+        {
+            urls: "turn:YOUR_APP_NAME.metered.live:443?transport=tcp",
+            username: "YOUR_UNIQUE_USERNAME",
+            credential: "YOUR_UNIQUE_PASSWORD"
         }
     ]
 };
