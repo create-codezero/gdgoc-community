@@ -13,32 +13,25 @@ const micBtn = document.getElementById('micBtn');
 let localStream = null;
 let remoteStream = null;
 let peerConnection = null;
-let isHost = false; // Tracks role explicitly to avoid checking null localDescription
+let isHost = false;
 
-// STUN + TURN (UDP and TCP over port 443 to bypass strict mobile firewalls)
-// Replace this block in groupmeet.js
+// STUN + TURN configurations
 let servers = {
     iceServers: [
         { urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] },
+        // Fallback TURN servers (UDP, TCP, and TLS)
         {
-            urls: "turn:YOUR_APP_NAME.metered.live:80",
-            username: "YOUR_UNIQUE_USERNAME",
-            credential: "YOUR_UNIQUE_PASSWORD"
-        },
-        {
-            urls: "turn:YOUR_APP_NAME.metered.live:443",
-            username: "YOUR_UNIQUE_USERNAME",
-            credential: "YOUR_UNIQUE_PASSWORD"
-        },
-        {
-            urls: "turn:YOUR_APP_NAME.metered.live:443?transport=tcp",
-            username: "YOUR_UNIQUE_USERNAME",
-            credential: "YOUR_UNIQUE_PASSWORD"
+            urls: [
+                'turn:openrelay.metered.ca:80',
+                'turn:openrelay.metered.ca:443',
+                'turn:openrelay.metered.ca:443?transport=tcp'
+            ],
+            username: 'openrelayproject',
+            credential: 'openrelayproject'
         }
     ]
 };
 
-// Dynamic Room ID: Use URL parameter (e.g., site.com/?room=room1), or generate one
 const urlParams = new URLSearchParams(window.location.search);
 const roomId = urlParams.get('room') || "gdgoc-main-room"; 
 
@@ -52,20 +45,20 @@ onAuthStateChanged(auth, async (user) => {
 
 async function initWebRTC() {
     try {
-        // 1. Attempt fetching custom TURN credentials from Go backend
+        // Attempt fetching custom TURN credentials from Go backend if available
         try {
             const res = await fetch('/turn-credentials');
             if (res.ok) {
                 const data = await res.json();
                 if (data.iceServers && data.iceServers.length > 0) {
                     servers = { iceServers: data.iceServers };
+                    console.log("Loaded custom TURN credentials from backend");
                 }
             }
         } catch (e) {
-            console.warn("Go TURN backend offline, using built-in STUN/TURN fallback.");
+            console.warn("Go TURN backend offline, using default ICE servers.");
         }
 
-        // 2. Get local video/audio media
         localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         localVideo.srcObject = localStream;
 
@@ -76,38 +69,39 @@ async function initWebRTC() {
 
     } catch (error) {
         console.error("WebRTC Initialization Error:", error);
-        alert("Camera/Mic access error. Ensure you are visiting via HTTPS: " + error.message);
+        alert("Camera/Mic access error: " + error.message);
     }
 }
 
 function createPeerConnection() {
     peerConnection = new RTCPeerConnection(servers);
 
-    // Monitor connection status in UI
     peerConnection.oniceconnectionstatechange = () => {
         console.log("ICE Connection State:", peerConnection.iceConnectionState);
-        if (remoteLabel) {
-            remoteLabel.innerText = `Status: ${peerConnection.iceConnectionState}`;
+        if (remoteLabel) remoteLabel.innerText = `Status: ${peerConnection.iceConnectionState}`;
+        
+        if (peerConnection.iceConnectionState === 'failed') {
+            console.warn("ICE Connection Failed. Network couldn't negotiate peer path.");
+            peerConnection.restartIce();
         }
     };
 
-    // Attach tracks received from remote peer
     peerConnection.ontrack = (event) => {
-        console.log("Received remote track!");
+        console.log("Received remote track:", event.track.kind);
         event.streams[0].getTracks().forEach((track) => {
             remoteStream.addTrack(track);
         });
         if (remoteLabel) remoteLabel.innerText = "Connected Peer";
     };
 
-    // Add local stream tracks to Peer Connection
     localStream.getTracks().forEach((track) => {
         peerConnection.addTrack(track, localStream);
     });
 
-    // Gather ICE Candidates safely
+    // Gather ICE Candidates
     peerConnection.onicecandidate = async (event) => {
         if (event.candidate) {
+            console.log(`Gathered Local Candidate (${event.candidate.type}):`, event.candidate.candidate);
             const roomRef = doc(db, "rooms", roomId);
             const candidateType = isHost ? "offerCandidates" : "answerCandidates";
             try {
@@ -115,8 +109,21 @@ function createPeerConnection() {
             } catch (e) {
                 console.error("Error writing ICE candidate to Firestore:", e);
             }
+        } else {
+            console.log("ICE Candidate gathering complete.");
         }
     };
+}
+
+// Safe helper to add candidate
+async function safeAddIceCandidate(candidateData) {
+    try {
+        const candidate = new RTCIceCandidate(candidateData);
+        await peerConnection.addIceCandidate(candidate);
+        console.log(`Added Remote Candidate (${candidateData.type || 'unknown'})`);
+    } catch (e) {
+        console.warn("Skipped candidate addition:", e.message);
+    }
 }
 
 async function handleSignaling(roomID) {
@@ -128,7 +135,6 @@ async function handleSignaling(roomID) {
     const roomData = roomExists ? roomSnapshot.data() : null;
 
     if (!roomExists || !roomData.offer) {
-        // --- HOST / CALLER FLOW ---
         isHost = true;
         console.log("Creating Meeting Room Offer as Host...");
 
@@ -139,7 +145,6 @@ async function handleSignaling(roomID) {
         
         await setDoc(roomRef, { offer: { type: offer.type, sdp: offer.sdp } });
 
-        // Listen for Answer from Peer
         onSnapshot(roomRef, async (snapshot) => {
             const data = snapshot.data();
             if (data && data.answer && !peerConnection.currentRemoteDescription) {
@@ -147,30 +152,27 @@ async function handleSignaling(roomID) {
                 const answer = new RTCSessionDescription(data.answer);
                 await peerConnection.setRemoteDescription(answer);
 
-                // Drain ICE candidate queue
-                for (const candidate of pendingCandidates) {
-                    await peerConnection.addIceCandidate(candidate);
+                for (const candidateData of pendingCandidates) {
+                    await safeAddIceCandidate(candidateData);
                 }
                 pendingCandidates = [];
             }
         });
 
-        // Listen for Peer's ICE Candidates
         onSnapshot(collection(roomRef, "answerCandidates"), (snapshot) => {
             snapshot.docChanges().forEach(async (change) => {
                 if (change.type === 'added') {
-                    const candidate = new RTCIceCandidate(change.doc.data());
+                    const candidateData = change.doc.data();
                     if (peerConnection.currentRemoteDescription) {
-                        await peerConnection.addIceCandidate(candidate);
+                        await safeAddIceCandidate(candidateData);
                     } else {
-                        pendingCandidates.push(candidate);
+                        pendingCandidates.push(candidateData);
                     }
                 }
             });
         });
 
     } else {
-        // --- PEER / CALLEE FLOW ---
         isHost = false;
         console.log("Joining Existing Meeting Room as Peer...");
 
@@ -184,15 +186,14 @@ async function handleSignaling(roomID) {
 
         await updateDoc(roomRef, { answer: { type: answer.type, sdp: answer.sdp } });
 
-        // Listen for Host's ICE Candidates
         onSnapshot(collection(roomRef, "offerCandidates"), (snapshot) => {
             snapshot.docChanges().forEach(async (change) => {
                 if (change.type === 'added') {
-                    const candidate = new RTCIceCandidate(change.doc.data());
+                    const candidateData = change.doc.data();
                     if (peerConnection.currentRemoteDescription) {
-                        await peerConnection.addIceCandidate(candidate);
+                        await safeAddIceCandidate(candidateData);
                     } else {
-                        pendingCandidates.push(candidate);
+                        pendingCandidates.push(candidateData);
                     }
                 }
             });
