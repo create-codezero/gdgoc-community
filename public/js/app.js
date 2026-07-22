@@ -51,15 +51,11 @@ const eventID = "solution-challenge-2026";
 // Store problems locally for instant search/filtering without extra Firestore reads
 let allProblemsCache = [];
 
-// ==========================================================
-// STATE CHECKER: RUNS AUTOMATICALLY ON LOAD/REFRESH
-// ==========================================================
 onAuthStateChanged(auth, async (user) => {
     if (!user) return;
 
     const profileDocRef = doc(db, "users", user.uid);
 
-    // Ensure user profile exists in Firestore with initialized default points = 0
     try {
         const profileSnap = await getDoc(profileDocRef);
         if (!profileSnap.exists()) {
@@ -80,7 +76,6 @@ onAuthStateChanged(auth, async (user) => {
         console.error("Error initializing user profile points:", err);
     }
 
-    // Load Profile Data
     if (profileEmail) {
         profileEmail.value = user.email;
         if (profileName) profileName.value = user.displayName || "";
@@ -99,7 +94,6 @@ onAuthStateChanged(auth, async (user) => {
         console.error("Error loading user profile:", err);
     }
 
-    // Check RSVP Status
     const rsvpRecordId = `${user.uid}_${eventID}`;
     const rsvpDocRef = doc(db, "rsvps", rsvpRecordId);
     try {
@@ -117,7 +111,6 @@ onAuthStateChanged(auth, async (user) => {
         }
     } catch (err) { console.error(err); }
 
-    // Real-time Live Calendar Sync
     onSnapshot(collection(db, "mentorship_bookings"), (snapshot) => {
         snapshot.forEach((docSnap) => {
             const data = docSnap.data();
@@ -138,7 +131,6 @@ onAuthStateChanged(auth, async (user) => {
     });
 });
 
-// --- PROFILE MANAGEMENT ---
 if (saveProfileBtn) {
     saveProfileBtn.onclick = async () => {
         const user = auth.currentUser;
@@ -175,8 +167,19 @@ if (chatBox) {
         snapshot.forEach((docSnap) => {
             const data = docSnap.data();
             const msgEl = document.createElement('div');
-            msgEl.className = "mb-1";
-            msgEl.innerHTML = `<strong>${data.user}:</strong> ${data.text}`;
+
+            console.log(data.email);
+
+            if(data.email == auth.currentUser.email){
+                msgEl.className = "mb-1 chat self";
+                msgEl.innerHTML = `<div class="text"> ${data.text} </div>`;
+            }else{
+                
+                msgEl.className = "mb-1 chat";
+                msgEl.innerHTML = `<div class="chatUser">${data.user}:</div> <div class="text"> ${data.text} </div>`;
+            }
+
+            
             chatBox.appendChild(msgEl);
         });
         chatBox.scrollTop = chatBox.scrollHeight;
@@ -199,7 +202,6 @@ if (chatBox) {
     }
 }
 
-// --- GEMINI AI BUDDY ---
 if (askAiBtn) {
     askAiBtn.onclick = async () => {
         const queryText = aiInput.value.trim();
@@ -248,7 +250,6 @@ if (askAiBtn) {
     };
 }
 
-// --- RSVP ENGINE ---
 if (rsvpBtn) {
     rsvpBtn.onclick = async () => {
         const user = auth.currentUser;
@@ -265,7 +266,6 @@ if (rsvpBtn) {
     };
 }
 
-// --- MENTORSHIP CALENDAR RESERVATION ---
 document.addEventListener('click', async (e) => {
     if (e.target && e.target.classList.contains('book-mentor-btn')) {
         const user = auth.currentUser;
@@ -311,18 +311,12 @@ document.addEventListener('click', async (e) => {
     }
 });
 
-// ==========================================================
-// --- FEATURE 5: ENHANCED DISCUSSION FORUM & POINTS ENGINE ---
-// ==========================================================
-
-// Helper to extract YouTube URL and return both ID and remaining text description
 function parseVideoAndText(inputStr) {
     const regExp = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i;
     const match = inputStr.match(regExp);
     
     if (match) {
         const videoId = match[1];
-        // Strip out the matched YouTube URL to extract the user's remaining text
         const descriptionText = inputStr.replace(match[0], '').trim();
         return { isVideo: true, videoId, text: descriptionText };
     }
@@ -330,7 +324,6 @@ function parseVideoAndText(inputStr) {
     return { isVideo: false, videoId: null, text: inputStr.trim() };
 }
 
-// 1. Create a Problem (Supports Categories)
 if (createProblemBtn) {
     createProblemBtn.onclick = async () => {
         const user = auth.currentUser;
@@ -362,7 +355,6 @@ if (createProblemBtn) {
     };
 }
 
-// Render Problems List to DOM
 function renderProblemsUI(problems) {
     if (!problemsList) return;
     problemsList.innerHTML = '';
@@ -414,7 +406,6 @@ function renderProblemsUI(problems) {
         problemEl.innerHTML = htmlStr;
         problemsList.appendChild(problemEl);
 
-        // Load Sub-collection Responses
         const responsesRef = query(collection(db, "problems", problemId, "responses"), orderBy("timestamp", "asc"));
         onSnapshot(responsesRef, (resSnap) => {
             const responseContainer = document.getElementById(`responses-${problemId}`);
@@ -448,7 +439,6 @@ function renderProblemsUI(problems) {
                         </div>`;
                 }
 
-                // Render description text below video (or standalone text reply)
                 if (response.content) {
                     resHtml += `<p class="text-gray-700 mt-1">${response.content}</p>`;
                 }
@@ -460,7 +450,6 @@ function renderProblemsUI(problems) {
     });
 }
 
-// 2. Load & Cache Problems in Real-Time
 if (problemsList) {
     const problemsQuery = query(collection(db, "problems"), orderBy("timestamp", "desc"));
     onSnapshot(problemsQuery, (snapshot) => {
@@ -472,7 +461,6 @@ if (problemsList) {
     });
 }
 
-// Filter Problems locally by Search Keyword and Category
 function filterAndRenderProblems() {
     const keyword = searchProblemInput ? searchProblemInput.value.toLowerCase().trim() : "";
     const selectedCategory = filterCategorySelect ? filterCategorySelect.value : "All";
@@ -489,11 +477,9 @@ function filterAndRenderProblems() {
 if (searchProblemInput) searchProblemInput.oninput = filterAndRenderProblems;
 if (filterCategorySelect) filterCategorySelect.onchange = filterAndRenderProblems;
 
-// 3. Dynamic Click Listener (Replies, Solves & Upvotes)
 document.addEventListener('click', async (e) => {
     const user = auth.currentUser;
     
-    // A. Submit Response (Preserves Video AND Text)
     if (e.target && e.target.classList.contains('submit-reply-btn')) {
         if (!user) return alert("Please log in to respond!");
         
@@ -514,8 +500,8 @@ document.addEventListener('click', async (e) => {
                 uid: user.uid,
                 userName: user.displayName || user.email || "Developer",
                 type: parsed.isVideo ? "video" : "text",
-                content: parsed.text, // Stores description text separately
-                videoId: parsed.videoId, // Stores YouTube video ID separately
+                content: parsed.text,
+                videoId: parsed.videoId,
                 upvotes: 0,
                 timestamp: new Date()
             });
@@ -535,8 +521,6 @@ document.addEventListener('click', async (e) => {
         }
     }
 
-    // B. Upvote System (+2 pts to author)
-    // B. Upvote System (+2 pts to author, strictly 1 like per user)
     if (e.target && e.target.classList.contains('upvote-btn')) {
         if (!user) return alert("Log in to upvote responses!");
         
@@ -549,28 +533,23 @@ document.addEventListener('click', async (e) => {
         e.target.disabled = true;
 
         try {
-            // Reference to a unique like document for this user on this response
             const likeDocRef = doc(db, "problems", problemId, "responses", responseId, "likes", user.uid);
             const likeSnap = await getDoc(likeDocRef);
 
-            // Check if user has already liked this response
             if (likeSnap.exists()) {
                 alert("You have already upvoted this response!");
                 e.target.disabled = false;
                 return;
             }
 
-            // 1. Record the user's like to prevent future likes
             await setDoc(likeDocRef, {
                 likedAt: new Date()
             });
 
-            // 2. Increment the upvote count on the response document
             await updateDoc(doc(db, "problems", problemId, "responses", responseId), {
                 upvotes: increment(1)
             });
 
-            // 3. Reward the response author +2 points
             await updateDoc(doc(db, "users", authorUid), {
                 points: increment(2)
             });
@@ -584,7 +563,6 @@ document.addEventListener('click', async (e) => {
         }
     }
 
-    // C. Mark as Solved (+10 pts to last responder, +2 bonus to all participants)
     if (e.target && e.target.classList.contains('mark-solved-btn')) {
         const problemId = e.target.getAttribute('data-id');
         e.target.disabled = true;
@@ -622,7 +600,6 @@ document.addEventListener('click', async (e) => {
     }
 });
 
-// 4. Leaderboard Synchronization with Badges
 if (leaderboardList) {
     const boardQuery = query(collection(db, "users"), orderBy("points", "desc"));
     

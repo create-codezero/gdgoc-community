@@ -11,8 +11,8 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
-	"github.com/joho/godotenv" // Added the dotenv loader package
-	"io/ioutil"
+	"github.com/gofiber/template/html/v2"
+	"github.com/joho/godotenv"
 )
 
 type Part struct {
@@ -28,58 +28,70 @@ type GeminiRequest struct {
 }
 
 func main() {
-	// ⚡ Load the .env file automatically when the application boots up
-	err := godotenv.Load()
-	if err != nil {
-		log.Println("Warning: No .env file found. Falling back to system environment variables.")
+	if err := godotenv.Load(); err != nil {
+		log.Println("Warning: No .env file found.")
 	}
 
-	app := fiber.New()
+	engine := html.New("./views", ".html")
+	
+	app := fiber.New(fiber.Config{
+		Views: engine,
+	})
+
 	app.Use(logger.New())
 
-	// Serve static files (CSS, JS) from the "public" directory
+	
 	app.Static("/static", "./public")
 
-	// Add this route right above log.Fatal(app.Listen(":3000"))
+	
 	app.Get("/favicon.ico", func(c *fiber.Ctx) error {
-		return c.SendStatus(204) // No Content response
+		return c.SendStatus(204)
 	})
 
-	// HTML Route: Landing / Login Page
+	
 	app.Get("/", func(c *fiber.Ctx) error {
-		return c.SendFile("./views/index.html")
+		return c.Render("index", nil)
 	})
+
+	app.Get("/dashboard", func(c *fiber.Ctx) error {
+		return c.Render("dashboard", nil)
+	})
+
+	app.Get("/discussion", func(c *fiber.Ctx) error {
+		return c.Render("discussion", nil)
+	})
+
+	// app.Get("/groupmeet", func(c *fiber.Ctx) error {
+	// 	return c.Render("groupmeet", nil)
+	// })
 
 	app.Get("/turn-credentials", func(c *fiber.Ctx) error {
-        // Fetch fresh credentials from your TURN provider
-        resp, err := http.Get("https://YOUR_APP.metered.live/api/v1/turn/credentials?apiKey=YOUR_API_KEY")
-        if err != nil {
-            return c.Status(500).SendString("Error fetching TURN credentials")
-        }
-        defer resp.Body.Close()
-        
-        body, _ := ioutil.ReadAll(resp.Body)
-        var iceServers []interface{}
-        json.Unmarshal(body, &iceServers)
-        
-        return c.JSON(fiber.Map{"iceServers": iceServers})
-    })
+		apiKey := os.Getenv("METERED_API_KEY")
+		if apiKey == "" {
+			return c.Status(500).SendString("Missing Metered API Key")
+		}
+		
+		resp, err := http.Get(fmt.Sprintf("https://YOUR_APP.metered.live/api/v1/turn/credentials?apiKey=%s", apiKey))
+		if err != nil {
+			return c.Status(500).SendString("Error fetching TURN credentials")
+		}
+		defer resp.Body.Close()
 
-	// HTML Route: Dashboard
-	app.Get("/dashboard", func(c *fiber.Ctx) error {
-		return c.SendFile("./views/dashboard.html")
+		
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return c.Status(500).SendString("Error reading response")
+		}
+
+		var iceServers []interface{}
+		if err := json.Unmarshal(body, &iceServers); err != nil {
+			return c.Status(500).SendString("Error parsing JSON")
+		}
+
+		return c.JSON(fiber.Map{"iceServers": iceServers})
 	})
 
-	// HTML Route: Discussion (NEW)
-	app.Get("/discussion", func(c *fiber.Ctx) error {
-		return c.SendFile("./views/discussion.html")
-	})
-
-	app.Get("/groupmeet", func(c *fiber.Ctx) error {
-		return c.SendFile("./views/groupmeet.html")
-	})
-
-	// API Route: Secure Proxy to Google Gemini AI API
+	
 	app.Post("/api/ai-buddy", func(c *fiber.Ctx) error {
 		type Body struct {
 			Prompt string `json:"prompt"`
@@ -91,43 +103,34 @@ func main() {
 
 		apiKey := os.Getenv("GEMINI_API_KEY")
 		if apiKey == "" {
-			log.Println("ERROR: GEMINI_API_KEY is not defined inside the environment setup!")
-			return c.Status(500).SendString("Internal configuration profile missing API credentials")
+			return c.Status(500).SendString("Missing GEMINI_API_KEY")
 		}
 
-		geminiURL := "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=" + apiKey
+		geminiURL := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=%s", apiKey)
 
 		payload := GeminiRequest{
-			Contents: []Content{
-				{Parts: []Part{{Text: input.Prompt}}},
-			},
+			Contents: []Content{{Parts: []Part{{Text: input.Prompt}}}},
 		}
 		jsonData, err := json.Marshal(payload)
 		if err != nil {
-			return c.Status(500).SendString("Failed to process payload")
+			return c.Status(500).SendString("Failed to marshal payload")
 		}
 
 		req, err := http.NewRequestWithContext(c.UserContext(), "POST", geminiURL, bytes.NewBuffer(jsonData))
 		if err != nil {
-			return c.Status(500).SendString("Failed to initialize upstream request")
+			return c.Status(500).SendString("Request initialization failed")
 		}
 		req.Header.Set("Content-Type", "application/json")
 
-		client := &http.Client{}
-		resp, err := client.Do(req)
+		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
 			return c.Status(500).SendString("AI Service Unreachable")
 		}
 		defer resp.Body.Close()
 
 		respBody, _ := io.ReadAll(resp.Body)
-
-		if resp.StatusCode != http.StatusOK {
-			fmt.Printf("[Gemini Upstream Error %d]: %s\n", resp.StatusCode, string(respBody))
-		}
-
 		return c.Status(resp.StatusCode).Type("json").Send(respBody)
 	})
 
 	log.Fatal(app.Listen(":3000"))
-}
+}   
