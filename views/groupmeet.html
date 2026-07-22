@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GDGOC - Group Meet</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white h-screen flex flex-col justify-between">
+    <!-- Header -->
+    <header class="bg-gray-800 p-4 flex justify-between items-center shadow-md">
+        <h1 class="text-lg font-bold">🎥 GDGOC Live Group Meet</h1>
+        <a href="/dashboard" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-sm font-semibold transition-colors">Leave Room</a>
+    </header>
+
+    <!-- Main Video Grid Container -->
+    <main class="flex-1 p-4 grid grid-cols-1 md:grid-cols-2 gap-4 max-w-6xl mx-auto w-full items-center justify-center">
+        <!-- Local User Video -->
+        <div class="relative bg-black rounded-lg overflow-hidden shadow-lg aspect-video flex items-center justify-center border border-gray-700">
+            <video id="localVideo" autoplay muted playsinline class="w-full h-full object-cover"></video>
+            <span class="absolute bottom-3 left-3 bg-black/60 px-2 py-1 rounded text-xs">You (Local)</span>
+        </div>
+
+        <!-- Remote Peer Video -->
+        <div class="relative bg-black rounded-lg overflow-hidden shadow-lg aspect-video flex items-center justify-center border border-gray-700">
+            <video id="remoteVideo" autoplay playsinline class="w-full h-full object-cover"></video>
+            <span class="absolute bottom-3 left-3 bg-black/60 px-2 py-1 rounded text-xs" id="remoteLabel">Waiting for Peer...</span>
+        </div>
+    </main>
+
+    <!-- Controls Toolbar -->
+    <footer class="bg-gray-800 p-4 flex justify-center space-x-4">
+        <button id="camBtn" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded text-sm font-medium transition-colors">Toggle Camera</button>
+        <button id="micBtn" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded text-sm font-medium transition-colors">Toggle Mute</button>
+    </footer>
+
+    <!-- Load JavaScript Module -->
+    <script type="module" src="/static/js/groupmeet.js"></script>
+</body>
+</html>

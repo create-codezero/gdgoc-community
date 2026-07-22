@@ -54,6 +54,10 @@ func main() {
 		return c.SendFile("./views/discussion.html")
 	})
 
+	app.Get("/groupmeet", func(c *fiber.Ctx) error {
+		return c.SendFile("./views/groupmeet.html")
+	})
+
 	// API Route: Secure Proxy to Google Gemini AI API
 	app.Post("/api/ai-buddy", func(c *fiber.Ctx) error {
 		type Body struct {
