@@ -2,7 +2,7 @@
 
 A full-stack, real-time web application built for Google Developer Groups On Campus (GDGOC) members[cite: 1, 3]. It brings community events, global real-time chat, AI study assistance, structured Q&A discussion forums, gamified leaderboards, and 1-on-1 mentorship bookings under a single roof[cite: 1, 3, 5].
 
-**Live Demo:** [https://gdgoc-community.onrender.com/dashboard](https://gdgoc-community.onrender.com/dashboard)[cite: 3]
+**Live Demo:** [https://gdgoc-community.onrender.com/](https://gdgoc-community.onrender.com/)[cite: 3]
 
 ---
 
