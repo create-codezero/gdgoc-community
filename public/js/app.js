@@ -168,8 +168,6 @@ if (chatBox) {
             const data = docSnap.data();
             const msgEl = document.createElement('div');
 
-            console.log(data.email);
-
             if(data.email == auth.currentUser.email){
                 msgEl.className = "mb-1 chat self";
                 msgEl.innerHTML = `<div class="text"> ${data.text} </div>`;
