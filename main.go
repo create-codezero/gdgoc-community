@@ -106,7 +106,8 @@ func main() {
 			return c.Status(500).SendString("Missing GEMINI_API_KEY")
 		}
 
-		geminiURL := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=%s", apiKey)
+		// geminiURL := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=%s", apiKey)
+		geminiURL := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=%s", apiKey)   
 
 		payload := GeminiRequest{
 			Contents: []Content{{Parts: []Part{{Text: input.Prompt}}}},
