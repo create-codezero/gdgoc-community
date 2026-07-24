@@ -504,7 +504,7 @@ document.addEventListener('click', async (e) => {
                 timestamp: new Date()
             });
 
-            await updateDoc(doc(doc(db, "users", user.uid)), {
+            await updateDoc(doc(db, "users", user.uid), {
                 points: increment(pointsEarned)
             });
 
