@@ -13,7 +13,7 @@ A full-stack, real-time web application built for Google Developer Groups On Cam
 * **Dynamic QR Pass Generation:** Generates a real-time QR ticket pass containing a unique user ticket string[cite: 1, 5].
 
 ### 2. 💬 Communication & AI Integration
-* **Gemini AI Study Buddy:** Direct proxy integration with `gemini-1.5-flash` for answering technical questions, debugging code, and explaining algorithms[cite: 1, 3, 5].
+* **Gemini AI Study Buddy:** Direct proxy integration with `gemini-3-flash` for answering technical questions, debugging code, and explaining algorithms[cite: 1, 3, 5].
 * **Live Community Chat:** Real-time global messaging for instant interactions using Firebase Firestore sync[cite: 1, 5].
 
 ### 3. 🐛 Discussion Forum & Gamification
@@ -42,7 +42,7 @@ A full-stack, real-time web application built for Google Developer Groups On Cam
 * **Framework:** [Fiber v2](https://gofiber.io/) (High-performance Web Framework)
 * **Templates:** Fiber HTML engine[cite: 3]
 * **APIs:** 
-  * Google Gemini Generative AI REST API (`gemini-1.5-flash`)[cite: 3]
+  * Google Gemini Generative AI REST API (`gemini-3-flash`)[cite: 3]
   * Metered TURN credentials API endpoint[cite: 3]
 
 ### Frontend
